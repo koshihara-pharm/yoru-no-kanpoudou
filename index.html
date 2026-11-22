@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夜の漢方堂 ― 体を当てる占い（試作）</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="夜の漢方薬局で、占い師があなたの体と悩みを言い当てにいく、試作のゲームです。体質を楽しく知るためのもので、病気の判断や治療には使えません。">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="stage" id="stage">
+
+  <!-- 夜の漢方堂 -->
+  <section class="scene" id="scene" data-face="matsu">
+    <div class="bg"></div>
+    <div class="flicker"></div>
+    <div class="chara" id="chara">
+      <img src="img/matsu.png" data-f="matsu" alt="水晶玉を持つ、若い男の占い師">
+      <img src="img/miru.png" data-f="miru" alt="">
+      <img src="img/atari.png" data-f="atari" alt="">
+      <img src="img/hazure.png" data-f="hazure" alt="">
+      <!-- 水晶（orb は水晶の場所。mist くもり / glow 光 / ring 答えるたびに広がる輪 / sparks 当たりの光の粒） -->
+      <div class="orb" id="orb">
+        <div class="mist"></div>
+        <div class="glow" id="glow"></div>
+        <div class="in-ball" id="inBall"></div>
+        <div class="ring" id="ring"></div>
+        <div class="sparks" id="sparks"></div>
+      </div>
+    </div>
+    <div class="flash" id="flash"></div>
+    <div class="stamp" id="stamp"></div>
+    <div class="dots" id="dots" aria-label="当てた数"></div>
+    <button class="mute" id="mute" type="button" aria-label="音を切りかえる">音 あり</button>
+  </section>
+
+  <!-- せりふと、こたえ -->
+  <section class="panel">
+    <div class="talk" id="talk" aria-live="polite">
+      <div class="who" id="who"></div>
+      <div class="chip" id="chip"></div>
+      <p class="line" id="line"></p>
+      <p class="sub" id="sub"></p>
+      <div class="more" id="more" hidden>▼</div>
+    </div>
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <!-- はじまり -->
+  <section class="cover" id="cover">
+    <div class="cover-in">
+      <div class="kicker">体を当てる占い</div>
+      <h1>夜の漢方堂</h1>
+      <p class="cover-lead">体の悩みを、ひとつ、心に思いうかべてください。<br>占い師が、水晶をのぞいて、それを言い当てにいきます。5分ほどです。</p>
+      <button class="btn primary big" id="startBtn" type="button">占ってもらう</button>
+      <p class="cover-note">体質を楽しく知るための試作品で、診断ではありません。病気の判断や治療には使えません。登場人物は架空です。</p>
+    </div>
+  </section>
+
+  <!-- はじめの札（年齢、性別、体型） -->
+  <section class="profile" id="profile" hidden>
+    <div class="pf-card" id="pfCard">
+      <div class="pf-head">
+        <h2 id="pfTitle"></h2>
+        <p class="pf-lead" id="pfLead"></p>
+      </div>
+      <div id="pfRows"></div>
+      <button class="btn primary" id="pfOk" type="button" disabled></button>
+      <p class="pf-note" id="pfNote"></p>
+      <!-- わたすときに、朔が押すはんこ -->
+      <div class="pf-in" id="pfIn" aria-hidden="true"><span id="pfInJi"></span></div>
+    </div>
+  </section>
+
+  <!-- おわりの札 -->
+  <section class="result" id="result" hidden>
+    <div class="result-in">
+      <div class="kicker" id="resKicker">今夜の見立て</div>
+      <div class="rate"><span id="rateNum">0</span><small>%</small><em>的中</em></div>
+      <div class="res-dots" id="resDots"></div>
+      <div class="pot-card" id="potCard">
+        <div class="pot-art" id="potArt"></div>
+        <div>
+          <div class="label">あなたの体は</div>
+          <div class="pot-name" id="potName"></div>
+          <div class="pot-term" id="potTerm"></div>
+          <div class="nayami-line" id="nayamiLine"></div>
+        </div>
+      </div>
+      <div class="act-card" id="actCard">
+        <div class="label">ひとつだけ</div>
+        <p id="actText"></p>
+      </div>
+      <p class="res-reveal" id="revealText"></p>
+      <div class="res-btns">
+        <button class="btn primary" id="shareBtn" type="button">だれかに送る</button>
+        <button class="btn" id="againBtn" type="button">もう一度（家族や友だちを占う）</button>
+      </div>
+      <p class="cover-note">これは体質を楽しく知るための試作品で、診断ではありません。体調が気になるときは、医師や薬剤師に相談してください。答えた内容は、どこにも送られず、保存もされません。</p>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
