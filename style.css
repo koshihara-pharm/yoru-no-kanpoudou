@@ -34,7 +34,7 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
 }
 
-/* 夜の漢方堂 */
+/* 夜の店（背景と、占い師） */
 .scene { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .bg { position: absolute; inset: 0; background: url("img/heya.jpg") 50% 22% / cover no-repeat; filter: brightness(0.86); transition: filter 0.4s; }
 .scene.miss .bg { filter: brightness(0.58) saturate(0.8); }
@@ -274,7 +274,11 @@ button { font-family: inherit; cursor: pointer; }
 .result-in { padding-top: 24px; }
 .kicker { font-size: 13px; letter-spacing: 0.34em; color: var(--gold); }
 .cover h1 { margin: 2px 0 6px; font-family: "Shippori Mincho", serif; font-weight: 800; font-size: clamp(38px, 11vw, 56px); letter-spacing: 0.16em; color: #fff3d8; text-shadow: 0 0 24px rgba(255,170,70,0.45); }
-.cover-lead { margin: 0 0 16px; font-size: 15px; color: #e3d6bd; }
+/* 表紙は、題名が2行になったぶん、字が明るい着物にかかる。下の暗がりを早めに始めて、字に影をつける */
+.cover { background: linear-gradient(180deg, rgba(13,9,6,0.05) 0%, rgba(13,9,6,0.3) 34%, rgba(13,9,6,0.82) 56%, rgba(13,9,6,0.97) 72%); }
+.cover .kicker { text-shadow: 0 1px 3px #0d0906, 0 0 10px #0d0906; }
+.cover h1 small { display: block; font-size: 0.44em; font-weight: 700; letter-spacing: 0.22em; line-height: 1.5; margin-top: 4px; }
+.cover-lead { margin: 0 0 16px; font-size: clamp(13px, 3.7vw, 15px); text-wrap: pretty; color: #e3d6bd; }
 .cover-note { margin: 14px 0 0; font-size: 11px; color: #9a8f7c; line-height: 1.6; }
 
 .rate { font-family: "Shippori Mincho", serif; color: #ffe2a6; line-height: 1; margin: 6px 0 8px; text-shadow: 0 0 20px rgba(255,170,70,0.5); }

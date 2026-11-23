@@ -952,8 +952,8 @@
 
   $("shareBtn").addEventListener("click", function () {
     const lines = S.lost
-      ? ["夜の漢方堂で、体を占ってもらった。", "的中 " + S.rate + "%。今夜は、占い師の負け。"]
-      : ["夜の漢方堂で、体を言い当てられた。", "的中 " + S.rate + "%。私の体は「" + D.types[S.type].name + "」らしい。"];
+      ? ["「なつめ君の漢方占い」で、体を占ってもらった。","的中 " + S.rate + "%。今夜は、占い師の負け。"]
+      : ["「なつめ君の漢方占い」で、体を言い当てられた。","的中 " + S.rate + "%。私の体は「" + D.types[S.type].name + "」らしい。"];
     if (/^https?:/.test(location.protocol)) lines.push(location.origin + location.pathname);
     const text = lines.join("\n");
     if (navigator.share) navigator.share({ text: text }).catch(function () { /* やめたときは何もしない */ });
