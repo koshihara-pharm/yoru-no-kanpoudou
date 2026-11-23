@@ -334,6 +334,7 @@
       times: { start: performance.now(), firstGuess: 0, end: 0 }
     };
     scene.classList.remove("reveal", "vision", "dim");
+    hideHyou();
     stage.classList.remove("quake");
     fx(null);
     setClear(0);
@@ -755,6 +756,69 @@
     await say([TY.reframe].concat(D.praise), "soft");
   }
 
+  // ---------- 体質を、中医学のことばと、2つの表で明かす（鍋のたとえのかわり。data.js の types の shou） ----------
+  // 遊ぶ人が今夜「そうだ」と教えてくれたことか（札の答え、舌の答え、当たった体のしるし）
+  function oshieta(ate) {
+    if (!ate) return false;
+    const some = function (o, have) { return Object.keys(o || {}).some(function (k) { return o[k].indexOf(have[k]) !== -1; }); };
+    return some(ate.fuda, S.profile) || some(ate.shita, S.shita) ||
+      (ate.word || []).some(function (w) { return S.hitWords.some(function (h) { return h.word === w; }); });
+  }
+  // 表を出す。朱の丸をつけた数を返す
+  function showHyou(H) {
+    $("hyTitle").textContent = H.title;
+    const grid = $("hyGrid");
+    grid.innerHTML = "";
+    let n = 0;
+    // when のあるますは、はじめの札が合う人にだけ出す（月のものがある人だけ、など）。合うますを、上から6つ
+    H.rows.filter(function (r) { return !r.when || matches(r.when); }).slice(0, 6).forEach(function (r) {
+      const cell = document.createElement("figure");
+      cell.className = "hy-cell";
+      if (oshieta(r.ate)) { cell.classList.add("maru"); n++; }
+      const pic = document.createElement("div");
+      pic.className = "hy-pic";
+      const im = document.createElement("img"); im.src = r.img; im.alt = "";
+      pic.append(im);
+      const cap = document.createElement("figcaption"); cap.textContent = r.label.replace(/｜/g, "​"); // 「｜」は、行を折ってよい所の印
+      cell.append(pic, cap);
+      grid.append(cell);
+    });
+    $("hyou").hidden = false;
+    scene.classList.add("hyou-on");
+    SND.pop();
+    return n;
+  }
+  function hideHyou() { $("hyou").hidden = true; scene.classList.remove("hyou-on"); }
+
+  async function showShou() {
+    S.phase = "shou";
+    const Z = D.types[S.type].shou;
+    fx("think");
+    await speak("……", "think");
+    await beat(700);
+    scene.classList.remove("think"); // 目をとじたまま、水晶の中に、体質の名前が見えてくる
+    $("inBall").innerHTML = "<span class=\"in-ji\"></span>";
+    $("inBall").firstChild.textContent = Z.ji || "";
+    setClear(1);
+    scene.classList.add("reveal");
+    SND.reveal();
+    await speak(D.seen, "guess");
+    await pause();
+    fx(null);
+    await say(Z.setsumei);
+    for (const H of [Z.tokuchou, Z.fuchou]) {
+      if (!H) continue;
+      await speak(H.mae, "soft");
+      await beat(900);
+      const n = showHyou(H);
+      await pause();
+      if (n && D.hyouMaru) { await speak(D.hyouMaru, "soft"); await pause(); }
+      await say(H.lines);
+      hideHyou();
+    }
+    await say([Z.reframe].concat(D.praise), "soft");
+  }
+
   // 場面の種明かし: その人の体質に結びついた答えを、いくつか取りあげる
   async function taneakashi() {
     S.phase = "tane";
@@ -954,11 +1018,19 @@
     },
     nayami: guessNayami,
     nabe: showNabe,
+    // 体質を明かす。中医学のことばと表（shou）が書いてある体質は、それで。まだの体質は、いままでどおり、鍋と、出やすいこと
+    shou: async function () {
+      S.type = top();
+      if (D.types[S.type].shou) return await showShou();
+      await showNabe();
+      await STEP.deyasui();
+    },
     tane: taneakashi,
     youjou: youjou,
     okuri: async function () {
       S.phase = "okuri";
-      await say([D.types[S.type].close].concat(D.sendoff), "soft");
+      const TY = D.types[S.type];
+      await say([(TY.shou && TY.shou.close) || TY.close].concat(D.sendoff), "soft");
     }
   };
 
@@ -1003,9 +1075,10 @@
     $("actCard").hidden = lost;
     if (!lost) {
       const TY = D.types[S.type];
-      $("potArt").innerHTML = potSVG(S.type);
-      $("potName").textContent = TY.name;
-      $("potTerm").textContent = "中医学のことばでは「" + TY.term + "」";
+      // 中医学のことばで明かした体質（shou）は、鍋の絵と名前を出さない
+      $("potArt").innerHTML = TY.shou ? "" : potSVG(S.type);
+      $("potName").textContent = TY.shou ? TY.term : TY.name;
+      $("potTerm").textContent = TY.shou ? TY.shou.hitokoto : "中医学のことばでは「" + TY.term + "」";
       $("nayamiLine").textContent =
         S.nayamiHow === "atari" ? "言い当てられた悩み：" + S.nayami :
         S.nayamiHow === "chikai" ? "近かった悩み：" + S.nayami :
@@ -1059,7 +1132,7 @@
   $("shareBtn").addEventListener("click", function () {
     const lines = S.lost
       ? ["「なつめ君の漢方占い」で、体を占ってもらった。","的中 " + S.rate + "%。今夜は、占い師の負け。"]
-      : ["「なつめ君の漢方占い」で、体を言い当てられた。","的中 " + S.rate + "%。私の体は「" + D.types[S.type].name + "」らしい。"];
+      : ["「なつめ君の漢方占い」で、体を言い当てられた。","的中 " + S.rate + "%。私の体は「" + (D.types[S.type].shou ? D.types[S.type].term : D.types[S.type].name) + "」らしい。"];
     if (/^https?:/.test(location.protocol)) lines.push(location.origin + location.pathname);
     const text = lines.join("\n");
     if (navigator.share) navigator.share({ text: text }).catch(function () { /* やめたときは何もしない */ });

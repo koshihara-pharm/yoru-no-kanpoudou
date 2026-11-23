@@ -283,6 +283,32 @@ button { font-family: inherit; cursor: pointer; }
 .kicker { font-size: 13px; letter-spacing: 0.34em; color: var(--gold); }
 .cover h1 { margin: 2px 0 6px; font-family: "Shippori Mincho", serif; font-weight: 800; font-size: clamp(38px, 11vw, 56px); letter-spacing: 0.16em; color: #fff3d8; text-shadow: 0 0 24px rgba(255,170,70,0.45); }
 /* 表紙は、題名が2行になったぶん、字が明るい着物にかかる。下の暗がりを早めに始めて、字に影をつける */
+/* 体質の表（体の特徴／起きやすい不調）。終わりに、なつめが見せて、説明する。和紙の札に、小さな絵と短い言葉を、3つずつ2段にならべる。
+   絵は Codex が描いたもの（img/hyou/。舌の絵は img/shita/ のものを使う）。朱の丸は、遊ぶ人が今夜教えてくれたことにつく */
+.hyou { position: absolute; left: 10px; right: 10px; top: 40px; bottom: 58px; z-index: 3; display: flex; align-items: flex-end; pointer-events: none; }
+.hyou[hidden] { display: none; }
+.hy-card { position: relative; width: 100%; max-height: 100%; overflow-x: hidden; overflow-y: auto; pointer-events: auto; cursor: pointer; background: var(--paper) url("img/fuda/kami.jpg") center / cover; color: var(--ink); border-radius: 3px; padding: 15px 14px 12px; box-shadow: 0 12px 34px rgba(0,0,0,0.65), 0 0 0 1px rgba(90,60,30,0.35); transform-origin: 50% 100%; animation: fuda-in 0.62s cubic-bezier(.2,1,.3,1) backwards; }
+.hy-card::before { content: ""; position: absolute; inset: 6px; border: 1.5px solid rgba(74,42,24,0.72); pointer-events: none; }
+.hy-card h2 { margin: 0 0 9px; padding: 0 0 6px; text-align: center; font-family: "Shippori Mincho", serif; font-weight: 800; font-size: clamp(16px, 4.6vw, 19px); letter-spacing: 0.1em; border-bottom: 3px double rgba(126,42,27,0.7); }
+.hy-card h2 small { display: block; font-size: 0.62em; font-weight: 700; letter-spacing: 0.14em; color: var(--shu-dark); }
+.hy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 8px; }
+.hy-cell { margin: 0; text-align: center; animation: row-in 0.35s ease-out backwards; }
+.hy-cell:nth-child(2) { animation-delay: 0.06s; } .hy-cell:nth-child(3) { animation-delay: 0.12s; }
+.hy-cell:nth-child(4) { animation-delay: 0.18s; } .hy-cell:nth-child(5) { animation-delay: 0.24s; } .hy-cell:nth-child(6) { animation-delay: 0.3s; }
+.hy-pic { position: relative; width: min(100%, 15vh); margin: 0 auto; aspect-ratio: 1; }
+.hy-pic img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 4px; border: 1px solid rgba(74,42,24,0.45); background: #efe3c8; }
+.hy-cell figcaption { margin-top: 3px; min-height: 2.7em; font-family: "Shippori Mincho", serif; font-weight: 700; font-size: clamp(11.5px, 3.3vw, 13.5px); line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
+/* 朱の丸: 今夜、遊ぶ人が教えてくれたこと */
+.hy-cell.maru .hy-pic::after { content: ""; position: absolute; inset: -7%; background: url("img/fuda/maru.png") center / contain no-repeat; mix-blend-mode: multiply; opacity: 0.9; animation: hy-maru 0.3s 0.7s cubic-bezier(.3,1.5,.5,1) backwards; }
+.hy-cell.maru figcaption { color: var(--shu-dark); }
+@keyframes hy-maru { from { opacity: 0; transform: scale(1.35); } }
+/* 表を見せているあいだは、うしろを少し暗くする */
+.scene.hyou-on .bg { filter: brightness(0.6); transition: filter 0.5s; }
+/* 水晶に出る、体質の名前（鍋の絵のかわり） */
+.in-ball .in-ji { position: absolute; inset: 0; display: grid; place-items: center; writing-mode: vertical-rl; text-orientation: upright; font-family: "Shippori Mincho", serif; font-weight: 800; font-size: clamp(20px, 6.4vw, 30px); letter-spacing: 0.06em; color: #4a1f5e; }
+/* 結果の札: 鍋の絵がないとき */
+.pot-art:empty { display: none; }
+
 .cover { background: linear-gradient(180deg, rgba(13,9,6,0.05) 0%, rgba(13,9,6,0.3) 34%, rgba(13,9,6,0.82) 56%, rgba(13,9,6,0.97) 72%); }
 .cover .kicker { text-shadow: 0 1px 3px #0d0906, 0 0 10px #0d0906; }
 .cover h1 small { display: block; font-size: 0.44em; font-weight: 700; letter-spacing: 0.22em; line-height: 1.5; margin-top: 4px; }
@@ -318,7 +344,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* 光やゆれが苦手な人には、弱める（止めの長さと、ゆれ・光の粒は app.js でも弱めている） */
 @media (prefers-reduced-motion: reduce) {
-  .chara, .glow, .mist, .flicker, .flash, .stamp, .dot, .answers .btn, .ring, .sparks i, .line.key, .sub, .stage.quake, .pf-card, .pf-row, .pf-in, .pf-chip::after { animation: none !important; transition: none !important; }
+  .chara, .glow, .mist, .flicker, .flash, .stamp, .dot, .answers .btn, .ring, .sparks i, .line.key, .sub, .stage.quake, .pf-card, .pf-row, .pf-in, .pf-chip::after, .hy-card, .hy-cell, .hy-cell.maru .hy-pic::after { animation: none !important; transition: none !important; }
   .scene.stop .flash { opacity: 0.12; }
   .scene.stop .bg { filter: brightness(0.95); }
   .stamp.show { opacity: 1; transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
