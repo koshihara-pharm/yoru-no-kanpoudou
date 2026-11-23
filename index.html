@@ -24,6 +24,8 @@
       <img src="img/miru.png" data-f="miru" alt="">
       <img src="img/atari.png" data-f="atari" alt="">
       <img src="img/hazure.png" data-f="hazure" alt="">
+      <!-- 動くなつめ君（natsume.js が読みこめたら、「待つ」の絵のかわりに出す） -->
+      <canvas id="avatar" aria-hidden="true"></canvas>
       <!-- 水晶（orb は水晶の場所。mist くもり / glow 光 / ring 答えるたびに広がる輪 / sparks 当たりの光の粒） -->
       <div class="orb" id="orb">
         <div class="mist"></div>
@@ -44,6 +46,7 @@
     <div class="talk" id="talk" aria-live="polite">
       <div class="who" id="who"></div>
       <div class="chip" id="chip"></div>
+      <img class="mihon" id="mihon" alt="見本の舌の図" hidden>
       <p class="line" id="line"></p>
       <p class="sub" id="sub"></p>
       <div class="more" id="more" hidden>▼</div>
@@ -54,9 +57,9 @@
   <!-- はじまり -->
   <section class="cover" id="cover">
     <div class="cover-in">
-      <div class="kicker">体と悩みを、言い当てる</div>
+      <div class="kicker">書いていないことを、言い当てる</div>
       <h1><small>なつめ君の</small>漢方占い</h1>
-      <p class="cover-lead">体の悩みを、ひとつ、心に思いうかべてください。<br>占い師が、水晶をのぞいて、それを言い当てにいきます。5分ほどです。</p>
+      <p class="cover-lead">札に、体のことを書いてください。<br>書いていないことを、占い師が言い当てます。4分ほどです。舌を見るので、鏡を、そばに。</p>
       <button class="btn primary big" id="startBtn" type="button">占ってもらう</button>
       <p class="cover-note">体質を楽しく知るための試作品で、診断ではありません。病気の判断や治療には使えません。登場人物は架空です。</p>
     </div>
@@ -109,5 +112,6 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script type="module" src="natsume.js"></script>
 </body>
 </html>

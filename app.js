@@ -115,6 +115,14 @@
       extra + "</svg>";
   }
 
+  // ---------- なつめ君の動き（natsume.js。読みこめていないときは、何もしない） ----------
+  function NAT(what, a, b) {
+    const n = window.NATSUME_ACT;
+    if (n && n[what]) { try { n[what](a, b); } catch (e) { /* 動きがなくても、ゲームは進める */ } }
+  }
+  // せりふに書いた、しぐさの印（<nod> や [emotion:happy]）は、画面には出さない
+  function plain(text) { return String(text).replace(/<[a-z]+>|[emotion:[a-z]+]/g, ""); }
+
   // ---------- せりふ ----------
   const T = { typing: false, timer: null, full: "", finish: null, waitTap: null };
 
@@ -128,12 +136,14 @@
       $("sub").textContent = opt.sub || "";
       $("more").hidden = true;
       clearInterval(T.timer);
+      NAT("say", text, cls); // 口と、しぐさ
+      text = plain(text);
       T.full = text;
-      if (FAST || opt.instant) { el.textContent = text; T.typing = false; T.finish = null; res(); return; }
+      if (FAST || opt.instant) { el.textContent = text; T.typing = false; T.finish = null; NAT("said"); res(); return; }
       let i = 0;
       el.textContent = "";
       T.typing = true;
-      T.finish = function () { clearInterval(T.timer); T.typing = false; el.textContent = T.full; T.finish = null; res(); };
+      T.finish = function () { clearInterval(T.timer); T.typing = false; el.textContent = T.full; T.finish = null; NAT("said"); res(); };
       T.timer = setInterval(function () {
         i++;
         el.textContent = T.full.slice(0, i);
@@ -166,7 +176,7 @@
   function tap() {
     if (T.typing && T.finish) { T.finish(); return; }
     if (T.waitTap) { T.waitTap(); return; }
-    if (S && !S.done) { pulse(); SND.nudge(); }
+    if (S && !S.done) { pulse(); SND.nudge(); NAT("nudged"); }
   }
 
   async function say(lines, cls) {
@@ -176,7 +186,7 @@
   // 短いひとこと。読める長さだけ待って、自分で進む（押せば、すぐ進む）
   async function sayShort(text, cls, base) {
     await speak(text, cls || "soft");
-    await beat((base || TU.echoMs) + text.length * (TU.mojiYomuMs || 50));
+    await beat((base || TU.echoMs) + plain(text).length * (TU.mojiYomuMs || 50));
   }
 
   function choose(options, layout) {
@@ -194,6 +204,7 @@
           e.stopPropagation();
           if (T.typing && T.finish) T.finish();
           box.innerHTML = "";
+          NAT("answered");
           res(o);
         });
         box.append(b);
@@ -209,6 +220,7 @@
   function fx(name) {
     scene.classList.remove("think", "hit", "miss", "stop", "hit-s", "hit-m", "hit-l", "flare");
     scene.dataset.face = FACE[name] || "matsu";
+    NAT("face", name);
     if (name) { void scene.offsetWidth; scene.classList.add(name); }
   }
   function stamp(text, cls) {
@@ -268,6 +280,7 @@
   async function hitFx(size) {
     scene.classList.remove("think", "miss", "dim", "hit", "hit-s", "hit-m", "hit-l", "flare");
     scene.dataset.face = "atari";
+    NAT("face", "hit");
     scene.classList.add("stop");
     SND.impact(size);
     await sleep(TU.tome[size] * (CALM ? 0.5 : 1));
@@ -304,7 +317,7 @@
   // 体質の一覧は、data.js の types から読む（数も名前も、ここには書かない。同じ点のときは、types に書いた順）
   const ORDER = Object.keys(D.types);
   // 体の当ての数（flow の ate の n の合計）。印の数は、これに悩みの当て（1〜3回）が足される
-  const BODY = D.flow.reduce(function (n, st) { return n + (st.do === "ate" ? (st.n || 1) : 0); }, 0);
+  const BODY = D.flow.reduce(function (n, st) { return n + (st.do === "ate" ? (st.n || 1) : st.do === "kagami" ? 1 : st.do === "meguri" ? 1 : 0); }, 0);
   let S = null;
 
   function reset() {
@@ -335,6 +348,8 @@
   }
 
   function setChip(t) { $("chip").textContent = t; }
+  // せりふの窓に、見本の図を出す（空の文字なら、しまう）
+  function mihon(src) { const el = $("mihon"); if (src) el.src = src; el.hidden = !src; }
 
   // 点の高い順に並べた体質（同じ点なら ORDER の順）
   function ranked() {
@@ -374,13 +389,13 @@
     return Object.keys(when).every(function (k) { return when[k].indexOf(S.profile[k]) !== -1; });
   }
 
-  const ANS3 = [{ label: "当たり", v: "hit", cls: "yes" }, { label: "ときどき", v: "some" }, { label: "はずれ", v: "miss" }];
+  const ANS3 = [{ label: "ある", v: "hit", cls: "yes" }, { label: "ときどき", v: "some" }, { label: "ない", v: "miss" }];
   const ANS_N = [{ label: "当たり", v: "hit", cls: "yes" }, { label: "近い", v: "some" }, { label: "はずれ", v: "miss" }];
 
   // ---------- はじめの札（年齢、性別、体型）。1枚の札の上で、押して選ぶ。当たりやすくするために、裏で使う ----------
-  function askProfile() {
+  function askProfile(P0) {
     return new Promise(function (res) {
-      const P = D.profile, picked = {};
+      const P = P0 || D.profile, picked = {};
       S.phase = "fuda";
       $("pfTitle").textContent = P.title;
       $("pfLead").textContent = P.lead;
@@ -394,9 +409,10 @@
       card.classList.remove("stamped", "go");
       sheet.classList.remove("busy");
       $("pfInJi").textContent = P.seal || "";
+      $("pfIn").classList.toggle("naga", (P.seal || "").length > 1); // 2文字より長いはんこは、小さい字でたてに並べる
 
       function shown(row) {
-        return !row.onlyIf || Object.keys(row.onlyIf).every(function (k) { return picked[k] && picked[k].v === row.onlyIf[k]; });
+        return !row.onlyIf || Object.keys(row.onlyIf).every(function (k) { return (picked[k] ? picked[k].v : S.profile[k]) === row.onlyIf[k]; });
       }
       function clearRow(id) {
         delete picked[id];
@@ -495,7 +511,7 @@
     S.phase = "toi";
     fx(null);
     scene.classList.add("vision");
-    setChip("水晶の中　" + sc.time);
+    setChip(sc.chip != null ? sc.chip : "水晶の中　" + sc.time);
     await speak(sc.text);
     const o = await choose(shuffled(sc.options));
     addW(o.w);
@@ -539,7 +555,7 @@
   function nextGuess(t, wantBig) {
     let best = null, bestR = 9;
     D.types[t].guesses.forEach(function (g, i) {
-      if (S.usedGuess[t + i]) return;
+      if (S.usedGuess[t + i] || (g.when && !matches(g.when))) return;
       const r = g.check ? 2 : (!!g.big === wantBig ? 0 : 1);
       if (r < bestR) { best = { g: g, key: t + i }; bestR = r; }
     });
@@ -585,7 +601,7 @@
         await beat(TU.hazureMs - 300);
       }
       fx(null);
-      return;
+      return a.v;
     }
   }
 
@@ -680,7 +696,7 @@
     // 3回外した: 負けを認めて、教えてもらう
     S.phase = "oshiete";
     const O = D.oshiete;
-    scene.dataset.face = "hazure";
+    scene.dataset.face = "hazure"; NAT("face", "miss");
     await speak(O.lose, "soft");
     await pause();
     fx(null);
@@ -812,10 +828,10 @@
         setChip(Z.chip + "　" + row.label);
         await speak(row.ask);
         const opts = row.options.map(function (o) {
-          return { label: o.label, icon: "<img src=\"" + o.img + "\" alt=\"\">", o: o };
+          return o.img ? { label: o.label, icon: "<img src=\"" + o.img + "\" alt=\"\">", o: o } : { label: o.label, o: o };
         });
         opts.push({ label: Z.unknown, cls: "quiet", o: null });
-        const c = await choose(opts, "zu zu" + row.options.length);
+        const c = await choose(opts, row.options[0].img ? "zu zu" + row.options.length : "two");
         S.asked++;
         setClear(S.asked / TU.suishoToi);
         pulse();
@@ -831,6 +847,96 @@
       setChip("");
       if (Z.after) { await speak(Z.after, "soft"); await pause(); }
     },
+    // 鏡で答え合わせ（山場）。なつめが先に言い、遊ぶ人が鏡で自分の舌を見て、確かめる
+    kagami: async function (st, tt) {
+      const K = D.kagami, t = tt || top();
+      let c = null;
+      D.types[t].guesses.forEach(function (g, i) { if (!c && g.check && !S.usedGuess[t + i]) c = { g: g, key: t + i }; });
+      // 鏡で確かめるしるしが、まだない体質（いまは気滞）は、ふつうの当てを1つ
+      if (!c) return await guessOne("m", !tt);
+      S.phase = "kagami";
+      fx(null);
+      await say(K.lines.slice(0, -1), "soft");
+      await speak(K.lines[K.lines.length - 1], "soft");
+      const go = await choose([{ label: K.button, cls: "yes", v: "go" }, { label: K.skip, cls: "quiet", v: "skip" }]);
+      if (go.v === "skip") { await sayShort(K.skipLine, "soft"); return tt ? await guessOne("m", false) : undefined; }
+      S.usedGuess[c.key] = true;
+      S.last = t;
+      const g = c.g;
+      fx("think");
+      await speak(K.lead, "soft");
+      await beat(900);
+      mihon(g.img);
+      await speak(g.text, "guess");
+      const a = await choose([
+        { label: K.ans.hit, v: "hit", cls: "yes" }, { label: K.ans.some, v: "some" }, { label: K.ans.miss, v: "miss" }
+      ]);
+      mihon("");
+      S.scores[t] += a.v === "hit" ? TU.ten.atari : a.v === "some" ? TU.ten.tokidoki : TU.ten.hazure;
+      S.lastMiss = a.v === "miss";
+      if (a.v !== "miss" && g.word) S.hitWords.push({ t: t, word: g.word, big: true, cat: g.cat || "" });
+      if (a.v === "hit") {
+        await hitFx("l");
+        mark("hit", true);
+        await say(K.hit, "soft");
+      } else if (a.v === "some") {
+        someFx();
+        mark("some", true);
+        await speak(K.some, "soft");
+        await pause();
+      } else {
+        missFx();
+        mark("miss", true);
+        await say(K.miss, "soft");
+      }
+      fx(null);
+      return a.v;
+    },
+    // 輪。問い → しるしを1つ言う →「ある」なら体で確かめる →「ある」なら決まり。「ない」なら、問いを足して、もう一度
+    meguri: async function (st) {
+      const M = D.meguri, kai = st.kai || 4;
+      for (let r = 0; r < kai; r++) {
+        if (r > 0) { fx(null); await sayShort(M.more[(r - 1) % M.more.length], "soft", 500); }
+        const n = r === 0 ? (st.hajime == null ? 2 : st.hajime) : (st.tsugi == null ? 2 : st.tsugi);
+        for (let i = 0; i < n; i++) {
+          const sc = r === 0 ? nextScene() : (pickQuestion() || nextScene());
+          if (!sc) break;
+          await askScene(sc);
+        }
+        setChip("");
+        scene.classList.remove("vision");
+        const t = top();
+        if (!(S.last && t !== S.last && S.lastMiss)) { await speak(r === 0 ? M.first : M.again[(r - 1) % M.again.length], "soft"); await pause(); }
+        const a1 = await guessOne("m", false);
+        if (!a1 || a1 === "miss") continue;
+        await speak(M.deeper, "soft");
+        await pause();
+        const a2 = st.kagami === false ? await guessOne("m", false) : await STEP.kagami(null, t);
+        if (!a2 || a2 === "miss") continue;
+        await speak(M.kimari, "soft");
+        await pause();
+        return;
+      }
+      S.phase = "make";
+      scene.dataset.face = "hazure";
+      await say(D.lose, "soft");
+      return "lose";
+    },
+    // 鍋を明かしたあと、この鍋の人に出やすいことと、食べものを言う（data.js に書いていない体質は、とばす）
+    deyasui: async function () {
+      const TY = D.types[S.type];
+      if (TY.deyasui) { await speak(D.deyasuiLead, "soft"); await pause(); await speak(TY.deyasui); await pause(); }
+    },
+    shoku: async function () {
+      const TY = D.types[S.type];
+      if (TY.shoku) { await speak(D.shokuLead, "soft"); await pause(); await speak(TY.shoku); await pause(); }
+    },
+    // 2枚目の札（ふだんの体のこと）
+    fuda2: async function () {
+      const P = D.profile2;
+      if (P.mae) { await speak(P.mae, "soft"); await beat(900); }
+      await askProfile(P);
+    },
     bamen: async function (st) { await questions(st, nextScene); },
     shibori: async function (st) { await questions(st, pickQuestion); },
     ate: async function (st) {
@@ -841,7 +947,7 @@
       const got = S.bodyMarks.filter(function (m) { return m === "hit"; }).length + 0.5 * S.bodyMarks.filter(function (m) { return m === "some"; }).length;
       if (S.bodyMarks.length && got < TU.makeMiman) {
         S.phase = "make";
-        scene.dataset.face = "hazure";
+        scene.dataset.face = "hazure"; NAT("face", "miss");
         await say(D.lose, "soft");
         return "lose";
       }

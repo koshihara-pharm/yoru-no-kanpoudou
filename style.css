@@ -51,6 +51,10 @@ button { font-family: inherit; cursor: pointer; }
 .scene[data-face="miru"] img[data-f="miru"],
 .scene[data-face="atari"] img[data-f="atari"],
 .scene[data-face="hazure"] img[data-f="hazure"] { opacity: 1; }
+/* 動くなつめ君（natsume.js）。読みこめたら .live がつき、「待つ」の絵のかわりに出る */
+.chara canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.scene.live[data-face="matsu"] canvas { opacity: 1; }
+.scene.live[data-face="matsu"] img[data-f="matsu"] { opacity: 0; }
 .scene.think .chara { transform: translateX(-50%) scale(1.045); }
 .scene.hit .chara { animation: hop 0.6s cubic-bezier(.3,1.5,.5,1); }
 @keyframes hop { 0% { transform: translateX(-50%) scale(1.045); } 30% { transform: translateX(-50%) translateY(-3.5%) scale(1.06); } 100% { transform: translateX(-50%); } }
@@ -165,6 +169,9 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes keyin { from { transform: scale(1.22); opacity: 0.2; } }
 .sub { margin: 6px 0 0; font-family: "Shippori Mincho", "Yu Mincho", serif; font-size: clamp(15px, 1.6vh + 5px, 18px); line-height: 1.7; color: #e3d6bd; animation: subin 0.5s 0.3s ease-out backwards; }
 .sub:empty { display: none; }
+/* 鏡で答え合わせのとき、せりふのとなりに出す見本の図 */
+.mihon { float: right; width: 92px; aspect-ratio: 1; object-fit: cover; margin: 2px 0 6px 12px; border-radius: 6px; border: 1px solid var(--gold); box-shadow: 0 4px 12px rgba(0,0,0,0.5); animation: subin 0.5s ease-out backwards; }
+.mihon[hidden] { display: none; }
 @keyframes subin { from { opacity: 0; transform: translateY(4px); } }
 .line.soft { color: #d9cdb6; }
 .more { position: absolute; right: 14px; bottom: 6px; font-size: 12px; color: var(--gold); animation: bob 0.9s infinite; }
@@ -246,6 +253,7 @@ button { font-family: inherit; cursor: pointer; }
 /* わたすと、なつめのはんこが落ちる */
 .pf-in { position: absolute; left: 50%; bottom: 28px; width: 92px; height: 92px; margin-left: -46px; display: none; place-items: center; background: url("img/fuda/hanko.png") center / contain no-repeat; opacity: 0.94; transform: rotate(8deg); pointer-events: none; }
 .pf-in span { font-family: "Shippori Mincho", serif; font-weight: 800; font-size: 56px; line-height: 1; color: #fbf0d6; }
+.pf-in.naga span { writing-mode: vertical-rl; text-orientation: upright; font-size: 24px; line-height: 1.02; }
 .pf-card.stamped .pf-in { display: grid; animation: hanko 0.16s cubic-bezier(.6,0,.9,.4) backwards; }
 @keyframes hanko { from { opacity: 0; transform: rotate(8deg) scale(2.6); } 40% { opacity: 0.94; } }
 /* 押したボタンは消えて、そこに、はんこが残る */
