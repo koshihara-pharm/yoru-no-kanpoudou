@@ -123,7 +123,7 @@ window.URANAI = {
         { label: "飲むと重い", v: "omoi", w: { shitsu: 2 } },
         { label: "ふつう", v: "futsu" }
       ] },
-      { id: "onaka", label: "おなか", options: [
+      { id: "onaka", label: "お通じ", options: [ // 2026-11-23 に「おなか」から変えた（ゆるい、かたい、は、お通じのこと）
         { label: "ゆるい", v: "yurui", w: { shitsu: 1.5, youkyo: 1 } },
         { label: "かたい", v: "katai", w: { inkyo: 1.5 } },
         { label: "交互にくる", v: "kougo", w: { kitai: 1.5 } },
