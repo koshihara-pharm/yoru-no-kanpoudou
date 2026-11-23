@@ -207,7 +207,7 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
 
 /* はじめの札（年齢、性別、体型） */
-/* 和紙の札に、朱で丸をつけて答える。わたすと、朔がはんこを押して、札は水晶に吸いこまれる。
+/* 和紙の札に、朱で丸をつけて答える。わたすと、なつめがはんこを押して、札は水晶に吸いこまれる。
    和紙・朱の丸・はんこ・人形の絵は Codex が描いたもの（img/fuda/）。 */
 .profile { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; max-height: 88%; overflow-x: hidden; overflow-y: auto; padding: 16px 12px calc(12px + env(safe-area-inset-bottom)); }
 .profile.busy { pointer-events: none; overflow: hidden; }
@@ -243,7 +243,7 @@ button { font-family: inherit; cursor: pointer; }
 .pf-card .btn.primary { position: relative; width: 100%; margin-top: 10px; font-family: "Shippori Mincho", serif; font-weight: 800; font-size: 18px; letter-spacing: 0.08em; }
 .pf-card .btn.primary:disabled { background: rgba(120,100,75,0.28); border-color: rgba(90,60,30,0.3); box-shadow: none; color: rgba(60,40,24,0.55); cursor: default; }
 .pf-note { margin: 8px 0 0; font-size: 10.5px; letter-spacing: -0.01em; color: #7a6650; text-align: center; }
-/* わたすと、朔のはんこが落ちる */
+/* わたすと、なつめのはんこが落ちる */
 .pf-in { position: absolute; left: 50%; bottom: 28px; width: 92px; height: 92px; margin-left: -46px; display: none; place-items: center; background: url("img/fuda/hanko.png") center / contain no-repeat; opacity: 0.94; transform: rotate(8deg); pointer-events: none; }
 .pf-in span { font-family: "Shippori Mincho", serif; font-weight: 800; font-size: 56px; line-height: 1; color: #fbf0d6; }
 .pf-card.stamped .pf-in { display: grid; animation: hanko 0.16s cubic-bezier(.6,0,.9,.4) backwards; }
