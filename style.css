@@ -198,6 +198,8 @@ button { font-family: inherit; cursor: pointer; }
 .btn.quiet { font-size: 13px; padding: 7px; border-style: dashed; opacity: 0.85; grid-column: 1 / -1; }
 /* 舌の図をえらぶ（紙の札のような見た目） */
 .answers.zu { gap: 6px; }
+/* 絵が2つのとき（舌の裏）は、大きくなりすぎないように、幅をおさえて、まん中に寄せる */
+.answers.zu2 { grid-template-columns: repeat(2, minmax(0, 150px)); justify-content: center; }
 .answers.zu3 { grid-template-columns: repeat(3, 1fr); }
 .answers.zu4 { grid-template-columns: repeat(4, 1fr); }
 .answers.zu .btn.with-icon {

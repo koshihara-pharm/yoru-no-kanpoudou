@@ -220,12 +220,12 @@ window.URANAI = {
         ]
       },
       {
-        // 2026-11-23 に足した。絵は、まだない（文でえらぶ）。下書き
+        // 2026-11-23 に足した。下書き。絵は 2026-11-24 に足した（文だけでは分かりにくかった。Codex に頼んだ文は prompt_shita_ura.txt）
         id: "ura", label: "裏", name: "舌の裏", eye: "体の中の、めぐり",
         ask: "さいごに、舌の裏。舌の先を、上あごにつけて、見てください。2本の筋は、どうですか。",
         options: [
-          { label: "細くて、目立たない", v: "hoso", w: {} },
-          { label: "太くて、青むらさき", v: "futo", w: { oketsu: 2.5 }, tell: "舌の裏の筋が太い、とえらびました" }
+          { label: "細くて、目立たない", v: "hoso", img: "img/shita/ura_1.jpg", w: {} },
+          { label: "太くて、青むらさき", v: "futo", img: "img/shita/ura_2.jpg", w: { oketsu: 2.5 }, tell: "舌の裏の筋が太い、とえらびました" }
         ]
       }
     ]
