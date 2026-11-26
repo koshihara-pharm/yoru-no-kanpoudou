@@ -36,7 +36,11 @@ button { font-family: inherit; cursor: pointer; }
 
 /* 夜の店（背景と、占い師） */
 .scene { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.bg { position: absolute; inset: 0; background: url("img/heya.jpg") 50% 22% / cover no-repeat; filter: brightness(0.86); transition: filter 0.4s; }
+/* --sh: 部屋となつめ君の大きさを決める高さ。下のせりふのわくが、せりふだけ（いちばん低い）のときの、上の場所の高さ。
+   わくは、せりふの行数やボタンの数で高くなるが、そのとき絵は小さくせず、下のほうが、わくのうしろにかくれる（2026-11-26。大きくなったり小さくなったりして、おかしいと言われた） */
+.stage { --sh: calc(100vh - 146px - env(safe-area-inset-bottom)); }
+@supports (height: 100dvh) { .stage { --sh: calc(100dvh - 146px - env(safe-area-inset-bottom)); } }
+.bg { position: absolute; left: 0; right: 0; top: 0; height: max(100%, var(--sh)); background: url("img/heya.jpg") 50% 22% / cover no-repeat; filter: brightness(0.86); transition: filter 0.4s; }
 .scene.miss .bg { filter: brightness(0.58) saturate(0.8); }
 .scene::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: linear-gradient(180deg, rgba(13,9,6,0.3) 0%, transparent 16%, transparent 70%, rgba(13,9,6,0.96) 100%); }
 
@@ -45,7 +49,7 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes flicker { 0%, 100% { opacity: 0.55; } 22% { opacity: 0.8; } 37% { opacity: 0.5; } 61% { opacity: 0.9; } 80% { opacity: 0.6; } }
 
 /* 占い師（表情ごとの絵を重ねて、切りかえる） */
-.chara { position: absolute; left: 50%; bottom: 0; height: 86%; aspect-ratio: 470 / 724; transform: translateX(-50%); transform-origin: 50% 100%; transition: transform 0.7s ease; filter: drop-shadow(0 0 22px rgba(0,0,0,0.55)); z-index: 1; }
+.chara { position: absolute; left: 50%; top: calc(var(--sh) * 0.14); height: calc(var(--sh) * 0.86); aspect-ratio: 470 / 724; transform: translateX(-50%); transform-origin: 50% 100%; transition: transform 0.7s ease; filter: drop-shadow(0 0 22px rgba(0,0,0,0.55)); z-index: 1; }
 .chara img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; user-select: none; -webkit-user-drag: none; }
 .scene[data-face="matsu"] img[data-f="matsu"],
 .scene[data-face="miru"] img[data-f="miru"],
