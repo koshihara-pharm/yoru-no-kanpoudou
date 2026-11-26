@@ -50,7 +50,11 @@ button { font-family: inherit; cursor: pointer; }
 .scene[data-face="matsu"] img[data-f="matsu"],
 .scene[data-face="miru"] img[data-f="miru"],
 .scene[data-face="atari"] img[data-f="atari"],
-.scene[data-face="hazure"] img[data-f="hazure"] { opacity: 1; }
+.scene[data-face="hazure"] img[data-f="hazure"],
+.scene[data-face="tere"] img[data-f="tere"],
+.scene[data-face="naisho"] img[data-f="naisho"],
+.scene[data-face="minai"] img[data-f="minai"],
+.scene[data-face="miokuri"] img[data-f="miokuri"] { opacity: 1; }
 /* 動くなつめ君（natsume.js）。読みこめたら .live がつき、「待つ」の絵のかわりに出る */
 .chara canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
 .scene.live[data-face="matsu"] canvas { opacity: 1; }
@@ -67,6 +71,10 @@ button { font-family: inherit; cursor: pointer; }
 .scene[data-face="miru"] .orb { left: 48.3%; top: 34.3%; }
 .scene[data-face="atari"] .orb { left: 49.1%; top: 38%; }
 .scene[data-face="hazure"] .orb { left: 52.6%; top: 45.2%; }
+.scene[data-face="tere"] .orb { left: 48.8%; top: 40.3%; }
+.scene[data-face="naisho"] .orb { left: 54.6%; top: 41.9%; }
+.scene[data-face="minai"] .orb { left: 53.5%; top: 42.5%; }
+.scene[data-face="miokuri"] .orb { left: 54.7%; top: 41.4%; }
 /* くもり: はじめは水晶が暗くにごっていて、答えるたびに晴れていく */
 .mist { position: absolute; inset: 21%; border-radius: 50%; background: radial-gradient(circle at 50% 55%, rgba(24,16,40,0.9) 0%, rgba(30,20,48,0.78) 55%, rgba(30,20,48,0) 74%); opacity: calc(0.92 * (1 - var(--clear))); transition: opacity 0.9s; }
 .glow { position: absolute; inset: 0; border-radius: 50%;

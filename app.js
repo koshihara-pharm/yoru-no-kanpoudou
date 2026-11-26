@@ -121,7 +121,22 @@
     if (n && n[what]) { try { n[what](a, b); } catch (e) { /* 動きがなくても、ゲームは進める */ } }
   }
   // せりふに書いた、しぐさの印（<nod> や [emotion:happy]）は、画面には出さない
-  function plain(text) { return String(text).replace(/<[a-z]+>|[emotion:[a-z]+]/g, ""); }
+  function plain(text) { return String(text).replace(/<[a-z]+>|[emotion:[a-z]+]|\{[a-z]+\}/g, ""); }
+
+  // せりふに書いた、顔の印（{tere} 照れる / {naisho} ないしょ / {minai} 見ない / {miokuri} 見送る。docs/23）。
+  // 印のある所まで文字が出たら、その顔の絵になる。印のない次のせりふで、「待つ」に戻る
+  const KAO = { tere: 1, naisho: 1, minai: 1, miokuri: 1 };
+  let kaoNow = false; // いま、印で顔を変えているか
+  function setKao(name) {
+    const im = document.querySelector(".chara img[data-f=\"" + name + "\"]");
+    if (!im || !im.complete || !im.naturalWidth) return; // 絵がまだ届いていなければ、変えない
+    $("scene").dataset.face = name;
+    kaoNow = true;
+    NAT("face", "think"); // 動くなつめ君の口を止める（絵に切りかわるので）
+  }
+  function loadKao() {
+    document.querySelectorAll(".chara img[data-src]").forEach(function (im) { im.src = im.dataset.src; im.removeAttribute("data-src"); });
+  }
 
   // ---------- せりふ ----------
   const T = { typing: false, timer: null, full: "", finish: null, waitTap: null };
@@ -136,16 +151,25 @@
       $("sub").textContent = opt.sub || "";
       $("more").hidden = true;
       clearInterval(T.timer);
+      // 顔の印: どの顔に、何文字めで変えるか
+      let kao = null;
+      const km = /\{([a-z]+)\}/.exec(String(text));
+      if (km && KAO[km[1]]) kao = { name: km[1], at: plain(String(text).slice(0, km.index)).length };
+      text = String(text).replace(/\{[a-z]+\}/g, "");
+      if (!kao && kaoNow) { kaoNow = false; if (KAO[$("scene").dataset.face]) { $("scene").dataset.face = "matsu"; NAT("face", null); } }
+      const doKao = function () { if (kao) { setKao(kao.name); kao = null; } };
+      if (kao && kao.at === 0) doKao();
       NAT("say", text, cls); // 口と、しぐさ
       text = plain(text);
       T.full = text;
-      if (FAST || opt.instant) { el.textContent = text; T.typing = false; T.finish = null; NAT("said"); res(); return; }
+      if (FAST || opt.instant) { doKao(); el.textContent = text; T.typing = false; T.finish = null; NAT("said"); res(); return; }
       let i = 0;
       el.textContent = "";
       T.typing = true;
-      T.finish = function () { clearInterval(T.timer); T.typing = false; el.textContent = T.full; T.finish = null; NAT("said"); res(); };
+      T.finish = function () { clearInterval(T.timer); T.typing = false; doKao(); el.textContent = T.full; T.finish = null; NAT("said"); res(); };
       T.timer = setInterval(function () {
         i++;
+        if (kao && i >= kao.at) doKao();
         el.textContent = T.full.slice(0, i);
         if (!opt.quiet && i % 3 === 0) SND.tick();
         if (i >= T.full.length) T.finish();
@@ -1114,6 +1138,7 @@
   $("startBtn").addEventListener("click", function () {
     SND.init();
     $("cover").hidden = true;
+    loadKao();
     run(false);
   });
 
