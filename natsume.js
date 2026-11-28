@@ -140,6 +140,8 @@ async function start() {
   if (!canvas || calm || q.has("noavatar")) return;
   const BASE = "avatar/natsume/";
   const rig = await (await fetch(BASE + "rig.json")).json();
+  // ためし（?ikita=...）: 頭の動きを小さくする。首から下は止まっているので、頭だけ大きく動くと、首と顔がのびて見える（docs/27）
+  if (q.has("ikita") && rig.head) { rig.head.maxRoll *= 0.5; rig.head.shiftX *= 0.55; rig.head.shiftY *= 0.55; }
   avatar = await createMeshAvatar(canvas, { rig: rig, assetsBase: BASE + "built/", padTop: 0, padSide: 0 });
   avatar.setAutoIdle(true);    // まばたきや、小さなしぐさ
   avatar.setAutoMotion(false); // 大きなしぐさは、せりふに合わせて出す
