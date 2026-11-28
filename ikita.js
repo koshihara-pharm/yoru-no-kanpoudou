@@ -17,6 +17,12 @@
   if (!scene || !chara || !orb || !bg) return;
   const calm = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const MIRU = MODE === "miru" ? 1 : 0;
+  // ためしの形（スマホで、どこが重いか・こわれるかを、分けて見るため）
+  //   ?ikita=1     ぜんぶ
+  //   ?ikita=e     ぜんぶ。ただし「待つ」の絵は、動く人形をうつしとらず、止まった絵を使う（まばたきは、しない）
+  //   ?ikita=karui 部屋と水晶だけ。なつめ君は、いままでどおり（ゆれと光は、なし）
+  const HITO = MODE !== "karui", LIVE = MODE !== "e";
+  const yubi = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches); // 指でさわる端末（スマホなど）
 
   // ---------- 調整するところ ----------
   const TUNE = {
@@ -292,14 +298,14 @@
     "#ikitaHito { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; pointer-events: none; }",
     "#ikitaTama { position: absolute; inset: auto; height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: 1; pointer-events: none; }",
     ".scene.ikita .chara img, .scene.ikita #avatar { opacity: 0 !important; }",
-    ".scene:not(.ikita) #ikitaHito, .scene:not(.ikita) #ikitaTama { visibility: hidden; }"
+    ".scene:not(.ikita) #ikitaHito, .scene:not(.ikita-t) #ikitaTama { visibility: hidden; }"
   ].join("\n");
   const heya = document.createElement("canvas"); heya.id = "ikitaHeya"; heya.className = "bg"; heya.setAttribute("aria-hidden", "true");
   const hito = document.createElement("canvas"); hito.id = "ikitaHito"; hito.setAttribute("aria-hidden", "true");
   const tama = document.createElement("canvas"); tama.id = "ikitaTama"; tama.setAttribute("aria-hidden", "true");
   let dead = false;
   function yameru(e) { // うまく動かないときは、足したものを全部外して、いままでどおりの絵にもどす
-    dead = true; scene.classList.remove("ikita");
+    dead = true; scene.classList.remove("ikita", "ikita-t");
     [css, heya, hito, tama].forEach(function (el) { if (el.parentNode) el.parentNode.removeChild(el); });
     if (e) console.warn("ikita:", e);
   }
@@ -333,6 +339,8 @@
     g3.uniform1f(u3("onKami"), 0); g3.uniform1f(u3("onKimono"), 1); g3.uniform1f(u3("onKoshi"), 1);
     const liveTex = mkTex(g3, 0, null); let liveNg = false; // 動く人形（まばたきなど）を、毎回うつしとる先
 
+    // 端末が、絵を描く場所を取り上げたとき（重いときに起きる）は、足したものを外して、いままでどおりの絵にもどす
+    [heya, hito, tama].forEach(function (c) { c.addEventListener("webglcontextlost", function () { yameru(new Error("contextlost")); }); });
     document.head.appendChild(css);
     bg.parentNode.insertBefore(heya, bg.nextSibling);
     chara.insertBefore(hito, orb); chara.insertBefore(tama, orb);
@@ -348,11 +356,11 @@
       res[face] = r; return r;
     }
 
-    let dprCap = 2;
+    let dprCap = yubi ? 1.5 : 2; // スマホは、はじめから、少し粗くする（軽くするため）
     function fit(c, gl) {
       const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
       const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
-      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; gl.viewport(0, 0, w, h); }
+      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); } // 端末が、たのんだ大きさより小さい画面しかくれないことがあるので、じっさいの大きさを使う
     }
 
     let now0 = performance.now(), faceNow = "", frames = 0, fpsT = 0, fpsN = 0, fps = 0;
@@ -374,7 +382,7 @@
 
         // なつめ君と水晶（いま出ている顔の絵に合わせる）
         const face = scene.dataset.face || "", r = youi(face);
-        if (!r) { scene.classList.remove("ikita"); faceNow = ""; }
+        if (!r) { scene.classList.remove("ikita", "ikita-t"); faceNow = ""; }
         else {
           const F = r.F;
           if (face !== faceNow) {
@@ -384,19 +392,23 @@
             g3.activeTexture(g3.TEXTURE1); g3.bindTexture(g3.TEXTURE_2D, r.fuku);
             g3.uniform2f(u3("ko"), F.ko[0], F.ko[1]); g3.uniform4f(u3("kata"), F.kata[0], F.kata[1], F.kata[2], F.kata[3]); g3.uniform2f(u3("kataOn"), F.kataOn[0], F.kataOn[1]);
           }
-          fit(hito, g3); fit(tama, g2);
+          fit(tama, g2);
+          if (HITO) {
+          fit(hito, g3);
           // 「待つ」の絵は、動く人形（まばたき、口、うなずき）が出ているときは、その絵をうつしとって使う
           g3.activeTexture(g3.TEXTURE0);
           let live = false;
-          if (face === "matsu" && !liveNg && avatar && scene.classList.contains("live") && avatar.width > 1) {
+          if (LIVE && face === "matsu" && !liveNg && avatar && scene.classList.contains("live") && avatar.width > 1) {
             try { g3.bindTexture(g3.TEXTURE_2D, liveTex); put(g3, avatar, false, true); live = true; } catch (e) { liveNg = true; }
           }
           if (!live) g3.bindTexture(g3.TEXTURE_2D, r.img);
           g3.uniform1f(u3("t"), move); g3.uniform2f(u3("ptr"), cur[0], cur[1]);
           g3.clearColor(0, 0, 0, 0); g3.clear(g3.COLOR_BUFFER_BIT); g3.drawArrays(g3.TRIANGLE_STRIP, 0, 4);
+          scene.classList.add("ikita");
+          }
           g2.uniform1f(u2("t"), move); g2.uniform2f(u2("ptr"), cur[0], cur[1]);
           g2.clearColor(0, 0, 0, 0); g2.clear(g2.COLOR_BUFFER_BIT); g2.drawArrays(g2.TRIANGLE_STRIP, 0, 4);
-          scene.classList.add("ikita");
+          scene.classList.add("ikita-t");
         }
 
         // 重い端末では、画面の細かさを下げる
@@ -408,7 +420,7 @@
     window.IKITA = {
       set: function (x, y) { fixed = true; target = [x, y]; },
       free: function () { fixed = false; },
-      info: function () { return { frames: frames, fps: Math.round(fps), face: faceNow, dpr: dprCap, live: !liveNg }; }
+      info: function () { return { frames: frames, fps: Math.round(fps), face: faceNow, dpr: dprCap, live: LIVE && !liveNg, mode: MODE, hito: [hito.width, hito.height, g3.drawingBufferWidth, g3.drawingBufferHeight], heya: [heya.width, heya.height, g1.drawingBufferWidth, g1.drawingBufferHeight] }; }
     };
     requestAnimationFrame(tick);
   }).catch(yameru);
