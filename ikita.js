@@ -210,6 +210,7 @@
     "  c.rgb *= mix(vec3(1.0), vec3(0.70,0.62,0.78), clamp(max(-sc,0.0)*(0.30+0.40*f1), 0.0, 1.0)*tsuya);",
     "  c.rgb *= 1.0 + tsuya*((f1-0.5)*0.16 + 0.10*(0.5-q.x));",
     "  c.rgb += (vec3(1.0,0.60,0.28)*max(sc,0.0)*(0.08+0.30*f1) + vec3(1.0,0.70,0.42)*max(sa,0.0)*0.09) * c.a * tsuya;",
+    "  float lu = dot(c.rgb, vec3(0.299,0.587,0.114)); c.rgb = max(mix(vec3(lu), c.rgb, 1.16), 0.0);", // 色を、少し濃くする
     "  if (miru > 1.5) c = vec4(vec3(texture2D(fuku, q).r)*c.a, c.a);",
     "  c.rgb = mix(c.rgb, c.rgb*0.4 + dbg*c.a*0.8, miru > 0.5 && miru < 1.5 ? 1.0 : 0.0);",
     "  gl_FragColor = c;",
@@ -298,7 +299,10 @@
     "#ikitaHito { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; pointer-events: none; }",
     "#ikitaTama { position: absolute; inset: auto; height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: 1; pointer-events: none; }",
     ".scene.ikita .chara img, .scene.ikita #avatar { opacity: 0 !important; }",
-    ".scene:not(.ikita) #ikitaHito, .scene:not(.ikita-t) #ikitaTama { visibility: hidden; }"
+    ".scene:not(.ikita) #ikitaHito, .scene:not(.ikita-t) #ikitaTama { visibility: hidden; }",
+    // 立体の玉が見えるように、ゲームの「くもり」を、うすくする（暗くなる場面は、いままでどおり）
+    ".scene.ikita-t .mist { opacity: calc(0.4 * (1 - var(--clear))); }",
+    ".scene.ikita-t.dim .mist { opacity: 0.95; }"
   ].join("\n");
   const heya = document.createElement("canvas"); heya.id = "ikitaHeya"; heya.className = "bg"; heya.setAttribute("aria-hidden", "true");
   const hito = document.createElement("canvas"); hito.id = "ikitaHito"; hito.setAttribute("aria-hidden", "true");
@@ -357,8 +361,8 @@
     }
 
     let dprCap = yubi ? 1.5 : 2; // スマホは、はじめから、少し粗くする（軽くするため）
-    function fit(c, gl) {
-      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+    function fit(c, gl, kuwashiku) { // kuwashiku: なつめ君は、線がぼやけると色が淡く見えるので、スマホでも細かく描く
+      const dpr = Math.min(window.devicePixelRatio || 1, kuwashiku && dprCap > 1 ? 2 : dprCap);
       const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
       if (c.width !== w || c.height !== h) { c.width = w; c.height = h; gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); } // 端末が、たのんだ大きさより小さい画面しかくれないことがあるので、じっさいの大きさを使う
     }
@@ -394,7 +398,7 @@
           }
           fit(tama, g2);
           if (HITO) {
-          fit(hito, g3);
+          fit(hito, g3, true);
           // 「待つ」の絵は、動く人形（まばたき、口、うなずき）が出ているときは、その絵をうつしとって使う
           g3.activeTexture(g3.TEXTURE0);
           let live = false;
