@@ -159,7 +159,7 @@
   // なつめ君: 絵はそのまま。場所ごとに、少しずつ、ずらして塗る。ふちに、光とかげを足す
   const FS_HITO = [
     "precision highp float; varying vec2 uv;",
-    "uniform sampler2D img, fuku; uniform vec4 karada; uniform float t, onKami, onKimono, onKoshi, miru, kage, tsuya; uniform vec2 ptr; uniform vec4 yure; uniform vec2 ko, kataOn; uniform vec4 kata;", NOISE, FLICK,
+    "uniform sampler2D img, fuku; uniform vec4 karada; uniform float t, onKami, onKimono, onKoshi, miru, kage, tsuya; uniform vec2 ptr; uniform vec4 yure; uniform vec2 ko, kataOn; uniform float atama; uniform vec4 kata;", NOISE, FLICK,
     "float ell(vec2 p, vec2 c, vec2 r){ return 1.0 - smoothstep(0.62, 1.0, length((p-c)/r)); }",
     // つけ根 piv を軸に、ang だけ回したときの、ずれ
     "vec2 furi(vec2 p, vec2 piv, float ang){ vec2 d = p - piv; float c = cos(ang), s = sin(ang); return vec2(d.x*c - d.y*s, d.x*s + d.y*c) - d; }",
@@ -197,6 +197,7 @@
     // 光: ふくらみの、かたむきを見て、光のほうを向いた面を明るく、反対を暗くする。光は、指のほうから来る
     "  vec2 e = vec2(7.0/470.0, 0.0), e2 = vec2(0.0, 7.0/724.0);",
     "  vec2 g = vec2(texture2D(fuku, q+e).r - texture2D(fuku, q-e).r, texture2D(fuku, q+e2).r - texture2D(fuku, q-e2).r);",
+    "  g *= mix(1.0, smoothstep(175.0, 235.0, q.y*724.0), atama);", // 頭が動く絵（まばたきの人形）では、首から上の光とかげを外す。止まった光が、動く顔の上に残ると、顔がのびて見えるので
     "  vec2 L = normalize(vec2(ptr.x*1.3 + 0.35, ptr.y*0.6 - 0.45));",
     "  float sh = clamp(-dot(g, L)*7.0, -1.0, 1.0) * karada.w;",
     // かげを深く、明るい所はひかえめに。体ぜんたいも少し落として、下ほど暗くする（夜の部屋の明かりに合わせる）
@@ -406,6 +407,7 @@
             try { g3.bindTexture(g3.TEXTURE_2D, liveTex); put(g3, avatar, false, true); live = true; } catch (e) { liveNg = true; }
           }
           if (!live) g3.bindTexture(g3.TEXTURE_2D, r.img);
+          g3.uniform1f(u3("atama"), live ? 1 : 0);
           g3.uniform1f(u3("t"), move); g3.uniform2f(u3("ptr"), cur[0], cur[1]);
           g3.clearColor(0, 0, 0, 0); g3.clear(g3.COLOR_BUFFER_BIT); g3.drawArrays(g3.TRIANGLE_STRIP, 0, 4);
           scene.classList.add("ikita");
