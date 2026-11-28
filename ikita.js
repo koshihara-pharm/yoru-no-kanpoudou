@@ -9,12 +9,14 @@
 (function () {
   "use strict";
   const Q = new URLSearchParams(location.search);
-  if (Q.has("noikita")) return;
+  // いまは、ためしの入り口だけ: URL に ?ikita=1 をつけたときだけ動かす（スマホで、うまく出ないことがあったので。2026-11-28）
+  const MODE = Q.get("ikita");
+  if (!MODE || Q.has("noikita")) return;
   const scene = document.getElementById("scene"), chara = document.getElementById("chara"), orb = document.getElementById("orb"), avatar = document.getElementById("avatar");
   const bg = scene && scene.querySelector(".bg");
   if (!scene || !chara || !orb || !bg) return;
   const calm = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  const MIRU = Q.get("ikita") === "miru" ? 1 : 0;
+  const MIRU = MODE === "miru" ? 1 : 0;
 
   // ---------- 調整するところ ----------
   const TUNE = {
@@ -88,7 +90,7 @@
     // 床のつや: 火と行灯の明かりが、板の上に、たてにのびてうつる。なつめ君の影が、火と反対へ落ちて、火といっしょにゆれる
     "  float yuka = smoothstep(0.55, 0.63, q.y) * tsuya * onHi; float oku = exp(-(q.y-0.58)*2.2);",
     "  float wob = (n3(vec3(q.y*46.0, t*1.4, 3.0))-0.5)*0.03;",
-    "  float s1 = exp(-pow((q.x - hi.x + wob)/0.17, 2.0)), s2 = exp(-pow((q.x - hi.z + wob)/0.085, 2.0));",
+    "  float a1 = (q.x - hi.x + wob)/0.17, a2 = (q.x - hi.z + wob)/0.085; float s1 = exp(-a1*a1), s2 = exp(-a2*a2);",
     "  c += yuka*oku*(vec3(1.0,0.58,0.26)*s1*(0.05+0.20*f1) + vec3(1.0,0.66,0.34)*s2*(0.07+0.07*f2));",
     "  c *= 1.0 + yuka*(f1-0.5)*0.45*exp(-q.x*2.4);",
     "  vec2 k1 = (q - vec2(0.60 + 0.035*(f1-0.5), 1.0))/vec2(0.40, 0.17), k2 = (q - vec2(0.42, 1.0))/vec2(0.34, 0.13);",
@@ -118,7 +120,7 @@
     "  vec2 p = (uv-0.5)/0.28; float r = length(p); float mk = texture2D(mask, uv).r;",
     "  vec3 lav = vec3(0.78,0.66,1.0);",
     "  float halo = exp(-max(r-1.0,0.0)*5.0) * (0.10 + 0.34*sumi) * (0.85+0.15*sin(t*2.1));",
-    "  if (r >= 1.0) { float fd = smoothstep(1.78,1.2,r); float kg = exp(-(r-1.0)*3.4)*0.46*mk*fd*(0.75+0.25*p.y*-1.0/max(r,0.001)); gl_FragColor = vec4(lav*halo*0.55*fd, kg); return; } // 玉のまわりの着物を、うすく暗くする（玉が、着物から浮く）",
+    "  if (r >= 1.0) { float fd = 1.0 - smoothstep(1.2,1.78,r); float kg = exp(-(r-1.0)*3.4)*0.46*mk*fd*(0.75+0.25*p.y*-1.0/max(r,0.001)); gl_FragColor = vec4(lav*halo*0.55*fd, kg); return; } // 玉のまわりの着物を、うすく暗くする（玉が、着物から浮く）",
     "  float z = sqrt(1.0 - r*r); vec3 n = vec3(p.x, p.y, z);",
     "  mat3 R = rot(ptr.x*MAWARU + t*0.07, -ptr.y*MAWARU*0.6);",
     // 中のもや: 手前の面と、奥の面の、2か所で見る（奥行きが出る）
@@ -143,7 +145,7 @@
     "  //",
     "  vec3 L2 = normalize(vec3(0.5,0.45,0.75)); col += vec3(1.0,0.9,0.8)*pow(max(dot(reflect(vec3(0.,0.,-1.), n), L2),0.0), 90.0)*0.5;",
     "  col += vec3(0.9,0.75,1.0)*pow(max(dot(n.xy, -L.xy),0.0),3.0)*fres*0.9;", // 光が玉をぬけて、反対がわのふちに集まる
-    "  float al = 0.94 * smoothstep(1.0, 0.9, r) * mk;", // ふちは、もとの絵の線を残す。指のところは、塗らない
+    "  float al = 0.94 * (1.0 - smoothstep(0.9, 1.0, r)) * mk;", // ふちは、もとの絵の線を残す。指のところは、塗らない
     "  gl_FragColor = vec4(col*al + lav*halo*(1.0-al)*0.6*mk, al);",
     "}"
   ].join("\n").replace(/MAWARU/g, TUNE.tamaMawaru.toFixed(3));
